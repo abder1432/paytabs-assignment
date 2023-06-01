@@ -127,7 +127,7 @@ jQuery(document).ready(function($){
 
                             if(data.children.length > 0){
 
-                                $('#levelThree').fadeIn();
+                                $('#levelThree').fadeOut();
 
                                 $('#levelThree').empty();
                                 $('#levelThree').append('<option value="">None</option>');
