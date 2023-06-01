@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Category;
+use App\Http\Requests\CategoryRequest;
+
 
 class CategoryController extends Controller
 {
@@ -13,8 +16,22 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::orderBy('created_at', 'desc')->paginate(10);
+        return view('categories.index', compact('categories'));
     }
+
+
+        /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function example()
+    {
+        $main_categories = Category::where('parent_id', null)->get();
+        return view('categories.example', compact('main_categories'));
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -23,7 +40,8 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view('categories.create', compact('categories'));
     }
 
     /**
@@ -32,20 +50,13 @@ class CategoryController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+        Category::create([ 
+            'name' => $request->name,
+            'parent_id' => $request->parent_id,
+        ]);
+        return redirect()->route('categories.index')->with('success', __('Saved'));
     }
 
     /**
@@ -56,7 +67,10 @@ class CategoryController extends Controller
      */
     public function edit($id)
     {
-        //
+        $category = Category::findOrFail($id);
+        $categories = Category::all();
+
+        return view('categories.edit', compact('category', 'categories'));
     }
 
     /**
@@ -66,9 +80,15 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(CategoryRequest $request, $id)
     {
-        //
+        $category = Category::find($id);
+        $category->name = $request->name;
+        $category->parent_id = $request->parent_id;
+        $category->save();
+
+        return redirect()->route('categories.index')->with('success', __('Saved'));
+
     }
 
     /**
@@ -79,6 +99,21 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $category = Category::find($id);
+        $category->delete();
+        return back()->with('success', __('Deleted'));
     }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $category = Category::where('id', $id)->with('children')->firstOrFail();
+        return response()->json($category, 200);
+    }
+
 }
